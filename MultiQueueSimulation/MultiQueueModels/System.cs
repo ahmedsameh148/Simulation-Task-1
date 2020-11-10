@@ -16,12 +16,14 @@ namespace MultiQueueModels
     {
         public SimulationSystem system { set; get; }
         public Queue<Customer> queue { set; get; }
+        List<Customer> customers { get; set; }
         public int SelectedMethod { set; get; }
         public int StoppingCriteria { set; get; }
         public TaskSimulation()
         {
             system = new SimulationSystem();
             queue = new Queue<Customer>();
+            customers = new List<Customer>();
         }
 
         public void readData(string FilePath)
@@ -130,8 +132,55 @@ namespace MultiQueueModels
         }
         public void buildTable()
         {
+            int ac = 0;
+            while (true)
+            {
+                int t;
+                if (StoppingCriteria == 1)
+                    t = customers.Count;
+                else t = ac;
+                if (t >= system.StoppingNumber)
+                    break;
+                KeyValuePair<int, int> interarrival = generateInterArrival();
+                if (StoppingCriteria == 2 && ac + interarrival.Key > ac)
+                    break;
+                Customer customer = new Customer();
+                customer.ArrivalTime = ac + interarrival.Key;
+                customer.InterArrivalTime = interarrival.Key;
+                customer.RandomInterArrival = interarrival.Value;
+                customer.CustomerNumber = customers.Count + 1;
+                ac += interarrival.Key;
+                customers.Add(customer);
+            }
+            int idx = 0;
+            for (int i = 0; i <= ac || queue.Count > 0; i++)
+            {
+                checkQueue();
+                if (customers[idx].ArrivalTime == i)
+                {
+                    assignToServer(customers[idx], i);
+                }
+            }
+        }
+
+        void checkQueue(int CurTime)
+        {
+            if (queue.Count == 0)
+                return;
+            bool st = false;
+            foreach (Server s in system.Servers)
+            {
+                if (s.FinishTime <= CurTime) st = true;
+            }
+            if (!st)
+                return;
+            assignToServer(queue.Dequeue(), CurTime);
+        }
+        void assignToServer(Customer custoner, int CurTime)
+        {
 
         }
+
     }
 
 }
