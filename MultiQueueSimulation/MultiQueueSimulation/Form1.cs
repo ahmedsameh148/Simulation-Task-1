@@ -23,6 +23,8 @@ namespace MultiQueueSimulation
 
         private void runTestCase_Click(object sender, EventArgs e)
         {
+            dataGridView1.Rows.Clear();
+            system = new TaskSimulation();
             system.readData("E:\\Collage\\Template_Students\\MultiQueueSimulation\\MultiQueueSimulation\\TestCases\\TestCase1.txt");
             Print();
         }
@@ -32,6 +34,9 @@ namespace MultiQueueSimulation
             {
                 dataGridView1.Rows.Add(s.CustomerNumber, s.RandomInterArrival, s.InterArrival, s.ArrivalTime, s.RandomService, s.ServiceTime, s.AssignedServer.ID, s.StartTime, s.EndTime, s.TimeInQueue);
             }
+            system.calcPreformance();
+            string res = TestingManager.Test(system.system, Constants.FileNames.TestCase1);
+            MessageBox.Show(res);
         }
     }
 }

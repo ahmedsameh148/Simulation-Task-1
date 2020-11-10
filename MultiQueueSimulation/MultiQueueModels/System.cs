@@ -19,6 +19,7 @@ namespace MultiQueueModels
         List<Customer> customers { get; set; }
         public int SelectedMethod { set; get; }
         public int StoppingCriteria { set; get; }
+        public int totalSimulation { set; get; }
         public TaskSimulation()
         {
             system = new SimulationSystem();
@@ -109,8 +110,7 @@ namespace MultiQueueModels
         public KeyValuePair<int, int> generateInterArrival()
         {
             Random random = new Random();
-            int rnd = random.Next() % 100;
-            if (rnd == 0) rnd++;
+            int rnd = random.Next(1, 101);
             foreach (TimeDistribution t in system.InterarrivalDistribution)
             {
                 if (t.MinRange <= rnd && t.MaxRange >= rnd)
@@ -121,8 +121,7 @@ namespace MultiQueueModels
         public KeyValuePair<int, int> generateServiceTime(int selectedServer)
         {
             Random random = new Random();
-            int rnd = random.Next() % 100;
-            if (rnd == 0) rnd++;
+            int rnd = random.Next(1, 101);
             foreach (TimeDistribution t in system.Servers[selectedServer].TimeDistribution)
             {
                 if (t.MinRange <= rnd && t.MaxRange >= rnd)
@@ -141,24 +140,24 @@ namespace MultiQueueModels
                 else t = ac;
                 if (t >= system.StoppingNumber)
                     break;
-                KeyValuePair<int, int> interarrival = generateInterArrival();
+                KeyValuePair<int, int> interarrival = (customers.Count >= 0) ? generateInterArrival() : new KeyValuePair<int, int>();
                 if (StoppingCriteria == 2 && ac + interarrival.Key > ac)
                     break;
                 Customer customer = new Customer();
-                customer.ArrivalTime = ac + interarrival.Key;
+                customer.ArrivalTime = (customers.Count > 0) ? ac + interarrival.Key : 0;
                 customer.InterArrivalTime = interarrival.Key;
                 customer.RandomInterArrival = interarrival.Value;
                 customer.CustomerNumber = customers.Count + 1;
-                ac += interarrival.Key;
+                if (customers.Count > 0) ac += interarrival.Key;
                 customers.Add(customer);
             }
             int idx = 0;
             for (int i = 0; i <= ac || queue.Count > 0; i++)
             {
                 checkQueue(i);
-                if (customers[idx].ArrivalTime == i)
+                if (idx < customers.Count && customers[idx].ArrivalTime <= i)
                 {
-                    assignToServer(customers[idx], i);
+                    assignToServer(customers[idx], i); idx++;
                 }
             }
         }
@@ -209,7 +208,8 @@ namespace MultiQueueModels
             KeyValuePair<int, int> serviceTime = generateServiceTime(selectedServer);
             int start = Math.Max(customer.ArrivalTime, system.Servers[selectedServer].FinishTime);
             int end = start + serviceTime.Key;
-            int timeInQueue = Math.Max(0, system.Servers[selectedServer].FinishTime - customer.InterArrivalTime);
+            totalSimulation = Math.Max(totalSimulation, end);
+            int timeInQueue = Math.Max(0, system.Servers[selectedServer].FinishTime - customer.ArrivalTime);
             system.Servers[selectedServer].TotalWorkingTime += serviceTime.Key;
             system.Servers[selectedServer].FinishTime = end;
             SimulationCase simcase = new SimulationCase();
@@ -229,7 +229,22 @@ namespace MultiQueueModels
             simcase.TimeInQueue = timeInQueue;
             system.SimulationTable.Add(simcase);
         }
-
+        public void calcPreformance()
+        {
+            double totalq = 0, c = 0;
+            foreach (SimulationCase s in system.SimulationTable) {
+                totalq += s.TimeInQueue;
+                if (s.TimeInQueue > 0) c++;
+            }
+            system.PerformanceMeasures.AverageWaitingTime = ((decimal)totalq) / (customers.Count);
+            system.PerformanceMeasures.WaitingProbability = ((decimal)c) / (customers.Count);
+            for (int i = 0; i < system.NumberOfServers; i++)
+            {
+                system.Servers[i].AverageServiceTime = ((decimal)system.Servers[i].TotalWorkingTime) / customers.Count * 2;
+                system.Servers[i].IdleProbability = ((decimal)totalSimulation - system.Servers[i].TotalWorkingTime) / totalSimulation;
+                system.Servers[i].Utilization = ((decimal)system.Servers[i].TotalWorkingTime) / totalSimulation;
+            }
+        }
     }
 
 }
