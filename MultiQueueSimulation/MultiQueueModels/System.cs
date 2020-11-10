@@ -155,7 +155,7 @@ namespace MultiQueueModels
             int idx = 0;
             for (int i = 0; i <= ac || queue.Count > 0; i++)
             {
-                checkQueue();
+                checkQueue(i);
                 if (customers[idx].ArrivalTime == i)
                 {
                     assignToServer(customers[idx], i);
@@ -176,9 +176,58 @@ namespace MultiQueueModels
                 return;
             assignToServer(queue.Dequeue(), CurTime);
         }
-        void assignToServer(Customer custoner, int CurTime)
+        void assignToServer(Customer customer, int CurTime)
         {
+            int mn = 100000, selectedServer = -1;
+            for (int i = 0; i < system.NumberOfServers; i++)
+            {
+                if (system.Servers[i].FinishTime > CurTime)
+                    continue;
+                if (SelectedMethod == 3)
+                {
+                    if (mn > system.Servers[i].TotalWorkingTime)
+                    {
+                        mn = system.Servers[i].TotalWorkingTime;
+                        selectedServer = i;
+                    }
+                }
+                else
+                {
+                    selectedServer = i; break;
+                }
+            }
+            if (selectedServer == -1)
+            {
+                queue.Enqueue(customer);
+                system.PerformanceMeasures.MaxQueueLength = Math.Max(system.PerformanceMeasures.MaxQueueLength, queue.Count);
+            }
+            else addToServer(customer, selectedServer);
+        }
 
+        void addToServer(Customer customer, int selectedServer)
+        {
+            KeyValuePair<int, int> serviceTime = generateServiceTime(selectedServer);
+            int start = Math.Max(customer.ArrivalTime, system.Servers[selectedServer].FinishTime);
+            int end = start + serviceTime.Key;
+            int timeInQueue = Math.Max(0, system.Servers[selectedServer].FinishTime - customer.InterArrivalTime);
+            system.Servers[selectedServer].TotalWorkingTime += serviceTime.Key;
+            system.Servers[selectedServer].FinishTime = end;
+            SimulationCase simcase = new SimulationCase();
+
+            simcase.CustomerNumber = customer.CustomerNumber;
+            simcase.RandomInterArrival = customer.RandomInterArrival;
+            simcase.InterArrival = customer.InterArrivalTime;
+
+            simcase.ArrivalTime = customer.ArrivalTime;
+            simcase.RandomService = serviceTime.Value;
+            simcase.ServiceTime = serviceTime.Key;
+
+            simcase.AssignedServer = system.Servers[selectedServer];
+            simcase.StartTime = start;
+            simcase.EndTime = end;
+
+            simcase.TimeInQueue = timeInQueue;
+            system.SimulationTable.Add(simcase);
         }
 
     }
