@@ -84,3 +84,14 @@ F:\GoogleDriveSync\[2019-2020] Simulation\[2019-2020] Labs\Lab 2\Template_Studen
 F:\GoogleDriveSync\[2019-2020] Simulation\[2019-2020] Labs\Lab 2\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.csproj.GenerateResource.Cache
 F:\GoogleDriveSync\[2019-2020] Simulation\[2019-2020] Labs\Lab 2\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.exe
 F:\GoogleDriveSync\[2019-2020] Simulation\[2019-2020] Labs\Lab 2\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.pdb
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\bin\Debug\MultiQueueSimulation.exe.config
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.exe
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.pdb
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.csprojResolveAssemblyReference.cache
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.Form1.resources
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.Properties.Resources.resources
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\obj\Debug\MultiQueueSimulation.csproj.GenerateResource.Cache
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\bin\Debug\MultiQueueSimulation.exe
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\bin\Debug\MultiQueueSimulation.pdb
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\bin\Debug\MultiQueueModels.dll
+E:\Collage\Template_Students\MultiQueueSimulation\MultiQueueSimulation\bin\Debug\MultiQueueModels.pdb
