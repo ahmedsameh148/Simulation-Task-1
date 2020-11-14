@@ -14,6 +14,7 @@ namespace MultiQueueModels
         }
 
         public int ID { get; set; }
+        public int TotalServerCustomer { set; get; }
         public decimal IdleProbability { get; set; }
         public decimal AverageServiceTime { get; set; } 
         public decimal Utilization { get; set; }

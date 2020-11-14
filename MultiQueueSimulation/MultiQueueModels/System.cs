@@ -20,11 +20,17 @@ namespace MultiQueueModels
         public int SelectedMethod { set; get; }
         public int StoppingCriteria { set; get; }
         public int totalSimulation { set; get; }
+        public int[][] trakeServers;
         public TaskSimulation()
         {
             system = new SimulationSystem();
             queue = new Queue<Customer>();
             customers = new List<Customer>();
+            trakeServers = new int[200][];
+            for (int i = 0; i < 200; i++)
+            {
+                trakeServers[i] = new int[10000];
+            }
         }
 
         public void readData(string FilePath)
@@ -86,6 +92,7 @@ namespace MultiQueueModels
                         server.ID = system.Servers.Count + 1;
                         server.TotalWorkingTime = 0;
                         server.FinishTime = 0;
+                        server.TotalServerCustomer = 0;
                         system.Servers.Add(server);
                     }
                 }
@@ -140,17 +147,21 @@ namespace MultiQueueModels
                 else t = ac;
                 if (t >= system.StoppingNumber)
                     break;
-                KeyValuePair<int, int> interarrival = (customers.Count >= 0) ? generateInterArrival() : new KeyValuePair<int, int>();
-                if (StoppingCriteria == 2 && ac + interarrival.Key > ac)
+                KeyValuePair<int, int> interarrival = generateInterArrival();
+                //MessageBox.Show(interarrival.Key.ToString());
+                if (StoppingCriteria == 2 && ac + interarrival.Key > system.StoppingNumber)
                     break;
+                
                 Customer customer = new Customer();
                 customer.ArrivalTime = (customers.Count > 0) ? ac + interarrival.Key : 0;
                 customer.InterArrivalTime = interarrival.Key;
                 customer.RandomInterArrival = interarrival.Value;
                 customer.CustomerNumber = customers.Count + 1;
-                if (customers.Count > 0) ac += interarrival.Key;
+                if (customers.Count > 0)
+                    ac += interarrival.Key;
                 customers.Add(customer);
             }
+            //MessageBox.Show(ac.ToString());
             int idx = 0;
             for (int i = 0; i <= ac || queue.Count > 0; i++)
             {
@@ -164,16 +175,17 @@ namespace MultiQueueModels
 
         void checkQueue(int CurTime)
         {
-            if (queue.Count == 0)
-                return;
-            bool st = false;
-            foreach (Server s in system.Servers)
+            while (queue.Count != 0)
             {
-                if (s.FinishTime <= CurTime) st = true;
+                bool st = false;
+                foreach (Server s in system.Servers)
+                {
+                    if (s.FinishTime <= CurTime) st = true;
+                }
+                if (!st)
+                    return;
+                assignToServer(queue.Dequeue(), CurTime);
             }
-            if (!st)
-                return;
-            assignToServer(queue.Dequeue(), CurTime);
         }
         void assignToServer(Customer customer, int CurTime)
         {
@@ -206,10 +218,17 @@ namespace MultiQueueModels
         void addToServer(Customer customer, int selectedServer)
         {
             KeyValuePair<int, int> serviceTime = generateServiceTime(selectedServer);
+
             int start = Math.Max(customer.ArrivalTime, system.Servers[selectedServer].FinishTime);
             int end = start + serviceTime.Key;
+            for (int i = start; i <= end; i++)
+            {
+                trakeServers[selectedServer][i] = 1;
+            }
             totalSimulation = Math.Max(totalSimulation, end);
             int timeInQueue = Math.Max(0, system.Servers[selectedServer].FinishTime - customer.ArrivalTime);
+            system.Servers[selectedServer].TotalServerCustomer++;
+
             system.Servers[selectedServer].TotalWorkingTime += serviceTime.Key;
             system.Servers[selectedServer].FinishTime = end;
             SimulationCase simcase = new SimulationCase();
@@ -236,11 +255,14 @@ namespace MultiQueueModels
                 totalq += s.TimeInQueue;
                 if (s.TimeInQueue > 0) c++;
             }
-            system.PerformanceMeasures.AverageWaitingTime = ((decimal)totalq) / (customers.Count);
-            system.PerformanceMeasures.WaitingProbability = ((decimal)c) / (customers.Count);
+            if (customers.Count > 0)
+                system.PerformanceMeasures.AverageWaitingTime = ((decimal)totalq) / (customers.Count);
+            if (customers.Count > 0)
+                system.PerformanceMeasures.WaitingProbability = ((decimal)c) / (customers.Count);
             for (int i = 0; i < system.NumberOfServers; i++)
             {
-                system.Servers[i].AverageServiceTime = ((decimal)system.Servers[i].TotalWorkingTime) / customers.Count * 2;
+                if (system.Servers[i].TotalServerCustomer > 0)
+                    system.Servers[i].AverageServiceTime = ((decimal)system.Servers[i].TotalWorkingTime) / system.Servers[i].TotalServerCustomer;
                 system.Servers[i].IdleProbability = ((decimal)totalSimulation - system.Servers[i].TotalWorkingTime) / totalSimulation;
                 system.Servers[i].Utilization = ((decimal)system.Servers[i].TotalWorkingTime) / totalSimulation;
             }
